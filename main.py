@@ -20,7 +20,12 @@ CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
 wri = CWriter(ssd, freesans20, WHITE, BLACK, verbose=False)
 wri.set_clip(True, True, False)
 
+ssid = secrets.ssid
+ssid_pass = secrets.ssid_pass
+weather_api_key = secrets.weather_api_key
+
 influxdb_url = "http://192.168.10.24:8086"
+
 
 # These URLs need to be (percent) URL encoded  https://www.w3schools.com/tags/ref_urlencode.ASP
 # Adjust the timezone in the queries to show the proper timezones for your location.
@@ -29,13 +34,11 @@ high_tide_query = '{0}/query?db=tides_wlp&q=SELECT+top%28value%2C1%29+FROM+%22ti
 current_tide_query = "{0}/query?db=tides_wlp&q=select+*+from+tides_wlp+where+time+%3E+now%28%29+and+time+%3C+now%28%29%2B15m%3B".format(influxdb_url)
 current_state_query = "{0}/query?db=tides_wlp&q=select+difference%28value%29+from+tides_wlp+where+time+%3E+now%28%29+and+time+%3C+now%28%29%2B30m%3B".format(influxdb_url)
 # Update this to be for your given location
-weather_query = "https://api.openweathermap.org/data/2.5/weather?lat=44.97&appid=0565f7d91a10e9ba4142937b984197e9&lon=-62.07&units=metric"
+weather_query = "https://api.openweathermap.org/data/2.5/weather?lat=44.97&appid={0}&lon=-62.07&units=metric".format(weather_api_key)
 
 #How long to wait between screen changes.
 screen_rotate_time = 45
 
-ssid = secrets.ssid
-ssid_pass = secrets.ssid_pass
 
 def query_influxdb(query):
     gc.collect()
