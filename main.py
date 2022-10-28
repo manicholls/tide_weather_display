@@ -244,7 +244,7 @@ if __name__=='__main__':
                 display_text("Wind: {0} m/s, Gusting to {1} m/s".format(curr_wind, wind_gust),120, 2, WHITE)
                 display_text("Humidity: {0}%".format(humidity),150, 2, WHITE)
                 display_text("Pressure: {0} hPa".format(pressure),180, 2, WHITE)
-                display_text("Sunset: {0}:{1}".format(time.localtime(sunset)[3],time.localtime(sunset)[4] ), 210, 2, WHITE)
+                display_text("Sunset: {0}:{1}".format(time.localtime(sunset)[3],pad_num(time.localtime(sunset)[4]) ), 210, 2, WHITE)
                 sleep(screen_rotate_time)
                 clear_display()
                 i += screen_rotate_time
