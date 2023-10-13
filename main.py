@@ -11,7 +11,7 @@ from nanoguilib.color_setup import ssd  # Create a display instance
 from nanoguilib.nanogui import refresh
 from nanoguilib.label import Label
 from nanoguilib.writer import Writer, CWriter
-from gui.fonts import freesans20
+from nanoguilib import freesans20
 import uos
 from nanoguilib.colors import *
 
@@ -24,20 +24,15 @@ ssid = secrets.ssid
 ssid_pass = secrets.ssid_pass
 weather_api_key = secrets.weather_api_key
 
-influxdb_url = "http://192.168.10.24:8086"
-
-
 # These URLs need to be (percent) URL encoded  https://www.w3schools.com/tags/ref_urlencode.ASP
-# Adjust the timezone in the queries to show the proper timezones for your location.
-low_tide_query = "{0}/query?db=tides_wlp&q=SELECT+bottom%28value%2C1%29+FROM+tides_wlp+WHERE+time+%3E%3D+now%28%29+and+time+%3C%3D+now%28%29%2B12h+tz%28%27America%2FHalifax%27%29".format(influxdb_url)
-high_tide_query = '{0}/query?db=tides_wlp&q=SELECT+top%28value%2C1%29+FROM+%22tides_wlp%22+WHERE+time+%3E%3D+now%28%29+and+time+%3C%3D+now%28%29%2B12h+tz%28%27America%2FHalifax%27%29'.format(influxdb_url)
-current_tide_query = "{0}/query?db=tides_wlp&q=select+*+from+tides_wlp+where+time+%3E+now%28%29+and+time+%3C+now%28%29%2B15m%3B".format(influxdb_url)
-current_state_query = "{0}/query?db=tides_wlp&q=select+difference%28value%29+from+tides_wlp+where+time+%3E+now%28%29+and+time+%3C+now%28%29%2B30m%3B".format(influxdb_url)
-# Update this to be for your given location
+low_tide_query = "http://192.168.2.4:8086/query?db=tides_wlp&q=SELECT+bottom%28value%2C1%29+FROM+tides_wlp+WHERE+time+%3E%3D+now%28%29+and+time+%3C%3D+now%28%29%2B12h+tz%28%27America%2FHalifax%27%29"
+high_tide_query = 'http://192.168.2.4:8086/query?db=tides_wlp&q=SELECT+top%28value%2C1%29+FROM+%22tides_wlp%22+WHERE+time+%3E%3D+now%28%29+and+time+%3C%3D+now%28%29%2B12h+tz%28%27America%2FHalifax%27%29'
+current_tide_query = "http://192.168.2.4:8086/query?db=tides_wlp&q=select+*+from+tides_wlp+where+time+%3E+now%28%29+and+time+%3C+now%28%29%2B15m%3B"
+current_state_query = "http://192.168.2.4:8086/query?db=tides_wlp&q=select+difference%28value%29+from+tides_wlp+where+time+%3E+now%28%29+and+time+%3C+now%28%29%2B30m%3B"
 weather_query = "https://api.openweathermap.org/data/2.5/weather?lat=44.97&appid={0}&lon=-62.07&units=metric".format(weather_api_key)
 
-#How long to wait between screen changes.
-screen_rotate_time = 45
+screen_rotate_time = 15
+
 
 
 def query_influxdb(query):
@@ -71,7 +66,7 @@ def temp_colour(temp):
             return(LIGHTRED)
     except:
         return("WHITE")
-
+    
 def pad_num(num):
     # Add an extra 0 if the current minute is single digit.
     if len(str(num)) == 1:
@@ -79,8 +74,8 @@ def pad_num(num):
         return num
     else:
         return num
-
-
+    
+    
 if __name__=='__main__':
     clear_display()
 
@@ -100,13 +95,13 @@ if __name__=='__main__':
       clear_display()
       display_text('waiting for connection...',2, 2, RED)
       time.sleep(1)
-
+     
     # Handle connection error
     if wlan.status() != 3:
-       clear_display()
+       clear_display()         
        raise RuntimeError('network connection failed',2, 2)
     else:
-      clear_display()
+      clear_display()        
       display_text('connected',2, 2, YELLOW)
       status = wlan.ifconfig()
       display_text( "IP: {0}".format(status[0]), 20, 2, WHITE )
@@ -115,10 +110,10 @@ if __name__=='__main__':
       display_text( "DNS: {0}".format(status[3]), 80, 2, WHITE )
       sleep(1)
 
-
+    
     while True:
         try:
-            clear_display()
+            clear_display()        
             display_text("Updating Data",2, 2, YELLOW)
             ntptime.settime()
             try:
@@ -148,7 +143,7 @@ if __name__=='__main__':
                 htm_string = ""
 
             try:
-                display_text("Getting Current Tide Data",60, 2, GREY)
+                display_text("Getting Current Tide Data",60, 2, GREY)            
                 current_tide = query_influxdb(current_tide_query)
                 current_tide_time = current_tide.json()['results'][0]['series'][0]['values'][0][0]
                 current_tide_measurement = current_tide.json()['results'][0]['series'][0]['values'][0][1]
@@ -156,31 +151,32 @@ if __name__=='__main__':
                 del current_tide
                 display_text("Getting Current Tide Data",60, 2, GREEN)
             except:
-                display_text("Getting Current Tide Data",60, 2, RED)
+                display_text("Getting Current Tide Data",60, 2, RED)            
                 current_tide_time = ""
                 ctm_string = ""
 
             try:
-                display_text("Getting Current Forecast Data",80, 2, GREY)
+                display_text("Getting Current Forecast Data",80, 2, GREY)                
                 current_temp = query_influxdb(weather_query)
                 current_temp_string = int(current_temp.json()['main']['temp'])
                 feels_like = int(current_temp.json()['main']['feels_like'])
                 temp_max = int(current_temp.json()['main']['temp_max'])
                 temp_min = int(current_temp.json()['main']['temp_min'])
                 curr_desc = current_temp.json()['weather'][0]['description']
-                curr_wind = int(current_temp.json()['wind']['speed'])
-                wind_gust = int(current_temp.json()['wind']['gust'])
+                curr_wind = (int(current_temp.json()['wind']['speed']) * 3.6)
+                wind_gust = (int(current_temp.json()['wind']['gust']) * 3.6)
                 pressure = current_temp.json()['main']['pressure']
                 humidity = current_temp.json()['main']['humidity']
                 UTC_OFFSET = current_temp.json()['timezone']
                 sunset = (current_temp.json()['sys']['sunset'] + UTC_OFFSET)
-
+                
                 try:
                     del current_temp
                 except:
                     pass
                 display_text("Getting Current Forecast Data",80, 2, GREEN)
             except:
+                print(current_temp.response())
                 print(current_temp.json()['main'])
                 curr_desc = ""
                 curr_wind = ""
@@ -193,9 +189,9 @@ if __name__=='__main__':
                 UTC_OFFSET = "-10800" # Hard code current if we can't retrieve it.
                 sunset = ""
                 display_text("Getting Current Forecast Data",80, 2, RED)
-
-
-            display_text("Analyzing Data",120, 2, GREY)
+                
+           
+            display_text("Analyzing Data",120, 2, GREY)            
             try:
                 current_state_results = query_influxdb(current_state_query)
                 if current_state_results.json()['results'][0]['series'][0]['values'][0][1] >= 0:
@@ -207,7 +203,7 @@ if __name__=='__main__':
             except:
                 current_state_string = "unknown"
                 display_text("Analyzing Data",120, 2, RED)
-
+            
 
             display_text("Update Completed!",140, 2, GREEN)
             gc.collect()
@@ -215,14 +211,14 @@ if __name__=='__main__':
             clear_display()
             i = 0
             #Refresh data at ~10 minute intervals
-            while i <= 600:
+            while i <= 200:
                 actual_time = time.localtime(time.time() + UTC_OFFSET)  # Refresh time
                 #Screen 1
                 display_text("Tidal Forecast - {0}:{1}".format(actual_time[3],pad_num(actual_time[4])),2, 40, YELLOW)
                 display_text("Current Tide         {0}".format(ctm_string),32, 2, WHITE)
 
 
-                display_text(current_state_string,60, 2, WHITE)
+                display_text(current_state_string,60, 2, WHITE)  
 
                 display_text("Low Tide               {0}".format(ltm_string),100, 2, GREEN)
                 display_text(low_tide_time.replace("T","    "),130, 2, GREEN)
@@ -230,20 +226,20 @@ if __name__=='__main__':
 
                 display_text("High Tide              {0}".format(htm_string),180, 2, MAGENTA)
                 display_text(high_tide_time.replace("T","    "),210, 2, MAGENTA)
-
+                
                 sleep(screen_rotate_time)
                 clear_display()
-
+                
                 #Screen 2
                 actual_time = time.localtime(time.time() + UTC_OFFSET) # Refresh Time
                 display_text("Today's Weather - {0}:{1}".format(actual_time[3],pad_num(actual_time[4])),2, 30, YELLOW)
-
+               
                 display_text("Temp: {0}C  Feels Like: {1}C".format(current_temp_string, feels_like),32, 2, temp_colour(feels_like))
                 display_text("Low/High : {0}C / {1}C".format(temp_min,temp_max),60, 2, temp_colour(temp_min))
-                display_text("Current Conditions : {0}".format(curr_desc),90, 2, WHITE)
-                display_text("Wind: {0} m/s, Gusting to {1} m/s".format(curr_wind, wind_gust),120, 2, WHITE)
-                display_text("Humidity: {0}%".format(humidity),150, 2, WHITE)
-                display_text("Pressure: {0} hPa".format(pressure),180, 2, WHITE)
+                display_text("Current Conditions :",90, 2, WHITE)
+                display_text("{0}".format(curr_desc),120, 2, WHITE)
+                display_text("Wind: {0} km/h, Gusting to {1} km/h".format(curr_wind, wind_gust),150, 2, WHITE)
+                display_text("Humidity: {0}%".format(humidity),180, 2, WHITE)
                 display_text("Sunset: {0}:{1}".format(time.localtime(sunset)[3],pad_num(time.localtime(sunset)[4]) ), 210, 2, WHITE)
                 sleep(screen_rotate_time)
                 clear_display()
